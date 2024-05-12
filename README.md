@@ -22,6 +22,24 @@ but at the cost of being a Windows only application. UWP and JAVA were too restr
 libraries. With WPF only three libraries are needed to read/ write the metadata of the selected file, rip music from CDs and
 get online track details. C# WPF meets all the requirements of the media player app and will be used moving forward for 
 this project.
+
+![Example Image](/Resources/Capture2.PNG "Demo")
+
+![Example Image](/Resources/Week4UML-Sitemap-FlowChart.png "Diagrams")
+
+
+____________________________________
+**Build instructions**
+
+*Get Project*
+
+    git clone https://github.com/W-KNOTTS/CST-451-Week4.git
+
+*Open FinalProjectWPF-2.csproj*
+
+Build the project, install any required libraries.
+
+Play and rip your music!
 ____________________________________
 
 ***Copyright Compliance***

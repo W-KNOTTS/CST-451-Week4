@@ -41,7 +41,7 @@ namespace FinalProjectWPF_2
         {
             try
             {
-                string url = $"discid/{discId}?fmt=json&inc=artist-credits+labels+recordings+release-groups";
+                string url = $"discid/{discId}?fmt=json&inc=artist-credits+labels+recordings+release-groups";//string to get release group details
                 HttpResponseMessage response = await _httpClient.GetAsync(url);
                 response.EnsureSuccessStatusCode();
                 string json = await response.Content.ReadAsStringAsync();

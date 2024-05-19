@@ -4,13 +4,13 @@
 
 *Grand Canyon University: College of Science, Engineering, & Technology*
 
-*CST-451: Senior Project I*
+*CST-452: Senior Project II*
 
-*Professor Donna Jackson*
+*Professor Amr Elchouemi*
 
-*Revision: 4*
+*Revision: 5*
 
-*May 12, 2024*
+*May 19, 2024*
 
 **Project Summary:**
 

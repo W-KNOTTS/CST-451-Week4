@@ -36,7 +36,7 @@
         <ListBox x:Name="mediaListBox" Margin="5,10,0,123" SelectionChanged="MediaListBox_SelectionChanged" HorizontalAlignment="Left" Width="216"/>
         <Label Content="Select a CD drive:" Margin="1,0,0,69" HorizontalAlignment="Left" Width="129" Height="23" VerticalAlignment="Bottom"/>
         <ComboBox x:Name="DriveComboBox" SelectionChanged="DriveComboBox_SelectionChanged" Margin="5,0,0,49" HorizontalAlignment="Left" Width="130" Height="20" VerticalAlignment="Bottom"/>
-        <Label x:Name="RipLabel" Content="" Margin="228,330,0,0" Height="27" VerticalAlignment="Top" FontWeight="Bold" HorizontalAlignment="Left" Width="439"/>
+        <Label x:Name="RipLabel" Content="" Margin="228,0,159,94" FontWeight="Bold" Height="27" VerticalAlignment="Bottom"/>
         <Button x:Name="RipCDButton" Content="Rip Song" Click="RipCDButton_Click" HorizontalAlignment="Left" Margin="141,0,0,49" Width="64" Height="20" VerticalAlignment="Bottom" RenderTransformOrigin="0.689,0.667"/>
         <MediaElement x:Name="mediaElement"
               LoadedBehavior="Manual"
@@ -44,7 +44,9 @@
               MediaOpened="MediaElement_MediaOpened"
               MediaEnded="MediaElement_MediaEnded" Margin="228,12,6,122" />
         <Label x:Name="label" Content="                    Volume                 &#xD;&#xA;-                                                 +" Margin="626,0,0,47" FontWeight="Bold" HorizontalAlignment="Left" Width="184" Height="42" VerticalAlignment="Bottom"/>
+        <Button x:Name="OkButton" Content="Update MetaData" HorizontalAlignment="Left" Click="OkButton_Click" Margin="708,330,0,0" Width="86" Height="20" VerticalAlignment="Top" FontSize="10"/>
         <Slider x:Name="VolumeSlider" Margin="635,0,0,48" Minimum="0" Maximum="1" Value="0.5" ValueChanged="VolumeSlider_ValueChanged" HorizontalAlignment="Left" Width="164" Height="18" VerticalAlignment="Bottom"/>
-        <Button Content="Update MetaData" HorizontalAlignment="Left" Click="OkButton_Click" Margin="708,330,0,0" Width="86" Height="20" VerticalAlignment="Top" FontSize="10"/>
+        <CheckBox x:Name="MuteCheckBox" Content="Mute" HorizontalAlignment="Left" Margin="693,0,0,86" VerticalAlignment="Bottom" Checked="MuteCheckBox_Checked" Unchecked="MuteCheckBox_Unchecked"/>
+
     </Grid>
 </Window>

@@ -40,6 +40,7 @@ namespace FinalProjectWPF_2
         private CdRipper cdRipper;
         private MusicBrainzClient musicBrainzclient;
         DispatcherTimer timer;
+        private double previousVolume = 0.5;  // Default volume level or last known volume level before mute, needed to reset the slider after and durring mute
 
         // initialize components and objects
         public MainWindow()
@@ -51,6 +52,7 @@ namespace FinalProjectWPF_2
             musicBrainzclient = new MusicBrainzClient();
             PopulateCDrives();
             InitializeTimer();
+
         }
 
         // Timer for media run time UI updates
@@ -89,12 +91,12 @@ namespace FinalProjectWPF_2
             catch (Exception ex)
             {
                 MessageBox.Show($"Error retrieving CD data: {ex.Message}");
-                ArtistTextBox.Text = "Error";
-                AlbumTextBox.Text = "Error";
-                TitleTextBox.Text = "Error";
-                ReleaseDateTextBox.Text = "Error";
-                GenreTextBox.Text = "Error";
-                TagsTextBox.Text = "Error";
+                ArtistTextBox.Text = "No data found.";
+                AlbumTextBox.Text = "No data found.";
+                TitleTextBox.Text = "No data found.";
+                ReleaseDateTextBox.Text = "No data found.";
+                GenreTextBox.Text = "No data found.";
+                TagsTextBox.Text = "No data found.";
             }
         }
 
@@ -183,8 +185,21 @@ namespace FinalProjectWPF_2
             {
                 mediaElement.Play();
                 timer.Start();
+
+                // Assuming that the file path of the currently playing item is required to check if it's a video or not
+                string filePath = mediaElement.Source.LocalPath;  // Get the local path of the file
+                if (IsVideoFile(filePath))  // Check if it's a video file
+                {
+                    HideMetadataTextboxesForVideo();  // Hide metadata textboxes if it's a video
+                }
+                else
+                {
+                    ShowMetadataTextboxes();  // Show metadata textboxes if it's not a video
+                    DisplayMetadata(filePath);  // Also update the metadata display for non-video files
+                }
             }
         }
+
 
         //pause button click
         private void PauseButton_Click(object sender, RoutedEventArgs e)
@@ -232,7 +247,7 @@ namespace FinalProjectWPF_2
             }
         }
 
-        //play selected media item
+        // Play the selected media item
         private void PlaySelectedItem()
         {
             if (mediaListBox.SelectedItem != null && mediaDirectory != null)
@@ -241,8 +256,62 @@ namespace FinalProjectWPF_2
                 string filePath = Path.Combine(mediaDirectory, selectedFileName);
                 mediaElement.Source = new Uri(filePath);
                 mediaElement.Play();
-                DisplayMetadata(filePath);
+
+                Console.WriteLine($"Playing: {filePath}"); // Debugging
+                bool isVideo = IsVideoFile(filePath);
+                Console.WriteLine($"Is video: {isVideo}"); // Debugging
+
+                if (isVideo)
+                {
+                    HideMetadataTextboxesForVideo();//hide metadata if it is a video file
+                    Console.WriteLine("Hiding metadata for video."); // Debugging
+                }
+                else
+                {
+                    ShowMetadataTextboxes();
+                    DisplayMetadata(filePath); // Update metadata display only for non-video files
+                    Console.WriteLine("Showing metadata for audio."); // Debugging
+                }
             }
+        }
+
+
+
+        // Check if a file is a video file
+        private bool IsVideoFile(string filePath)
+        {
+            string[] videoExtensions = { ".mp4", ".mkv", ".avi" }; // seperate video files to hide metadata boxes 
+            return videoExtensions.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase);
+        }
+
+        // Hide all metadata text boxes when the file is a video
+        private void HideMetadataTextboxesForVideo()
+        {
+            ArtistTextBox.Visibility = Visibility.Collapsed;
+            AlbumTextBox.Visibility = Visibility.Collapsed;
+            TitleTextBox.Visibility = Visibility.Collapsed;
+            ReleaseDateTextBox.Visibility = Visibility.Collapsed;
+            GenreTextBox.Visibility = Visibility.Collapsed;
+            TagsTextBox.Visibility = Visibility.Collapsed;
+            DurationTextBox.Visibility = Visibility.Collapsed;
+            SizeTextBox.Visibility = Visibility.Collapsed;
+            CoverArt.Visibility = Visibility.Collapsed;
+            OkButton.Visibility = Visibility.Collapsed; // hide update Metadata button for audio files
+        }
+
+        // Show all metadata text boxes 
+        private void ShowMetadataTextboxes()
+        {
+            ArtistTextBox.Visibility = Visibility.Visible;
+            AlbumTextBox.Visibility = Visibility.Visible;
+            TitleTextBox.Visibility = Visibility.Visible;
+            ReleaseDateTextBox.Visibility = Visibility.Visible;
+            GenreTextBox.Visibility = Visibility.Visible;
+            TagsTextBox.Visibility = Visibility.Visible;
+            DurationTextBox.Visibility = Visibility.Visible;
+            SizeTextBox.Visibility = Visibility.Visible;
+            CoverArt.Visibility = Visibility.Visible;
+            OkButton.Visibility = Visibility.Visible; // show update Metadata button for audio files
         }
 
         // Opens a dialog to select a media directory and saves it as a string
@@ -352,47 +421,57 @@ namespace FinalProjectWPF_2
             }
         }
 
-        // Displays metadata for a selected file
+        // Method to display metadata from an MP3 file
         private void DisplayMetadata(string filePath)
         {
-            if (File.Exists(filePath))
-            {
-                try
-                {
-                    using (var file = TagLib.File.Create(filePath))//Taglib to read the metadata from the file and display it on the form.
-                    {
-                        Artists = file.Tag.FirstPerformer;
-                        ArtistTextBox.Text = Artists;
-
-                        Album = file.Tag.Album;
-                        AlbumTextBox.Text = Album;
-
-                        Title = file.Tag.Title;
-                        TitleTextBox.Text = Title;
-
-                        RDate = file.Tag.Year > 0 ? file.Tag.Year.ToString() : "Unknown Year";
-                        ReleaseDateTextBox.Text = RDate;
-
-                        TimeSpan duration = file.Properties.Duration;
-                        long fileSize = new FileInfo(filePath).Length;
-
-                        DurationTextBox.Text = duration.ToString(@"hh\:mm\:ss");
-                        SizeTextBox.Text = fileSize.ToString() + " bytes";
-
-                        seekSlider.Maximum = duration.TotalSeconds;
-                        RipLabel.Content = $"00:00 / {duration.ToString(@"hh\:mm\:ss")}";
-                    }
-                }
-                //Catch errors from loading metadata
-                catch (Exception ex)
-                {
-                    System.Windows.Forms.MessageBox.Show("Error loading metadata: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else
+            if (!File.Exists(filePath))
             {
                 MessageBox.Show("File does not exist: " + filePath, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+
+            // Additional preliminary check for MPEG headers
+            if (!IsLikelyValidMPEG(filePath))
+            {
+                MessageBox.Show("The file does not appear to be a valid MPEG audio file.", "Invalid File Type", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                using (var file = TagLib.File.Create(filePath)) // Using TagLib to open the file and read metadata
+                {
+                    // Displaying metadata in the TextBoxes, ignore if blank to avoid invalid tag errors.
+                    ArtistTextBox.Text = file.Tag.FirstPerformer ?? "Unknown Artist";
+                    AlbumTextBox.Text = file.Tag.Album ?? "Unknown Album";
+                    TitleTextBox.Text = file.Tag.Title ?? "Unknown Title";
+                    ReleaseDateTextBox.Text = file.Tag.Year > 0 ? file.Tag.Year.ToString() : "Unknown Year";
+                    DurationTextBox.Text = file.Properties.Duration.ToString(@"hh\:mm\:ss");
+                    SizeTextBox.Text = new FileInfo(filePath).Length.ToString() + " bytes";
+                }
+            }
+            catch (TagLib.CorruptFileException)
+            {
+                MessageBox.Show("Invalid MPEG audio header. This file may be corrupt or is not a valid audio file.", "Error Loading File", MessageBoxButtons.OK, MessageBoxIcon.Error);//display the ex if the file does not have a valid ID3 header.
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Needed to make this check to insure that the file is a valid media file, exception would not catch without this.
+        private bool IsLikelyValidMPEG(string filePath)
+        {
+            const int BufferSize = 3; // mpeg headers are found at the start of the file
+            byte[] buffer = new byte[BufferSize];
+            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                if (fs.Read(buffer, 0, BufferSize) < BufferSize)
+                    return false; //file too short to be a valid MPEG file
+            }
+            // Check for ID3 tag, 0x49, 0x44, and 0x33 is ASCII characters I, D, and 3 and if that is not there, then it is not valid - HXD used to verify this
+            return (buffer[0] == 0x49 && buffer[1] == 0x44 && buffer[2] == 0x33) || (buffer[0] == 0xFF && (buffer[1] & 0xE0) == 0xE0);
         }
 
         // insert the current metadata from the text boxes into the currently selected audio file
@@ -497,35 +576,38 @@ namespace FinalProjectWPF_2
         }
 
         // Updates the title metadata
-
         public async Task UpdateDate(string filePath)
         {
             try
             {
+                // Correctly use TagLib.File to open the file
                 using (var file = TagLib.File.Create(filePath))
                 {
-                    //Update the metadata from text boxes
-                    RDate = ReleaseDateTextBox.Text;
-                    Console.WriteLine(RDate);
+                    string inputDate = ReleaseDateTextBox.Text;
+                    Console.WriteLine(inputDate);
 
-                    if (DateTime.TryParse(ReleaseDateTextBox.Text, out DateTime parsedDate))
+                    if (DateTime.TryParse(inputDate, out DateTime parsedDate))
                     {
-                        // Set only the year as Taglib handles only the year part for MP3 files so only the year is used.
                         file.Tag.Year = (uint)parsedDate.Year;
+                    }
+                    else if (int.TryParse(inputDate, out int year) && year >= 1000 && year <= 9999)
+                    {
+                        file.Tag.Year = (uint)year;
                     }
                     else
                     {
                         Console.WriteLine("Invalid date format");
+                        return;  // Exit if the date is not valid
                     }
+
                     await Task.Delay(100);
-                    // Save the changes
-                    file.Save();
+                    file.Save();  // Save the changes
+                    Console.WriteLine("Date updated successfully!");
                 }
-                Console.WriteLine("Date updated successfully!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating artist: {ex.Message}");
+                Console.WriteLine($"Error updating date: {ex.Message}");
             }
         }
 
@@ -745,6 +827,26 @@ namespace FinalProjectWPF_2
             else
             {
                 System.Windows.Forms.MessageBox.Show("The CD is not ready. Please insert a CD into the drive.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private void MuteCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            // Store current volume, then mute the media player
+            if (mediaElement != null)
+            {
+                previousVolume = mediaElement.Volume;
+                mediaElement.Volume = 0;
+                VolumeSlider.Value = 0;  // Move the slider to the left to indicate mute
+            }
+        }
+
+        private void MuteCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            // Restore the volume from previousVolume
+            if (mediaElement != null)
+            {
+                mediaElement.Volume = previousVolume;
+                VolumeSlider.Value = previousVolume;  // Restore the slider position to reflect the current volume
             }
         }
 

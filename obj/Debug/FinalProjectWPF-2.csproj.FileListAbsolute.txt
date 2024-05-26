@@ -61,3 +61,5 @@ C:\Users\Administrator\Documents\_______________CST-451\Project\FinalProject\Wpf
 C:\Users\Administrator\Documents\_______________CST-451\Project\FinalProject\WpfApp1\obj\Debug\FinalProjectWPF-2.csproj.CopyComplete
 C:\Users\Administrator\Documents\_______________CST-451\Project\FinalProject\WpfApp1\obj\Debug\SlimMediaPlayer.exe
 C:\Users\Administrator\Documents\_______________CST-451\Project\FinalProject\WpfApp1\obj\Debug\SlimMediaPlayer.pdb
+C:\Users\Administrator\Documents\_______________CST-451\Project\FinalProject\WpfApp1\bin\Debug\Resources\Yak.mp3
+C:\Users\Administrator\Documents\_______________CST-451\Project\FinalProject\WpfApp1\obj\Debug\SlimMediaPlayer_Content.g.cs

@@ -39,14 +39,15 @@ namespace FinalProjectWPF_2
         string mediaDirectory;
         private CdRipper cdRipper;
         private MusicBrainzClient musicBrainzclient;
-        DispatcherTimer timer;
+        public DispatcherTimer timer;
         private double previousVolume = 0.5;  // Default volume level or last known volume level before mute, needed to reset the slider after and durring mute
+        //public MediaElement mediaElement;
 
         // initialize components and objects
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = this; 
+            DataContext = this;
             InitializeMediaPlayer();
             cdRipper = new CdRipper();
             musicBrainzclient = new MusicBrainzClient();
@@ -511,7 +512,7 @@ namespace FinalProjectWPF_2
         }
 
         // Updates the artist metadata
-        private async Task UpdateArtist(string filePath)
+        public async Task UpdateArtist(string filePath)
         {
             try
             {
@@ -636,29 +637,30 @@ namespace FinalProjectWPF_2
                         {
                             if (trackNumber >= 1 && trackNumber <= totalTracks)
                             {
-                                //Oper dialog to select the save directory for ripping tracks
+                                // Open dialog to select the save directory for ripping tracks
                                 var folderBrowserDialog = new FolderBrowserDialog();
                                 folderBrowserDialog.Description = "Select a folder for music files";
                                 folderBrowserDialog.ShowNewFolderButton = true;
                                 folderBrowserDialog.RootFolder = Environment.SpecialFolder.MyMusic;
                                 if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                                 {
-                                    string selectedPath = folderBrowserDialog.SelectedPath;//path selected saved to string
+                                    string selectedPath = folderBrowserDialog.SelectedPath; // path selected saved to string
                                     Console.WriteLine($"Selected folder: {selectedPath}");
 
-                                    //Update strings with current text box text
+                                    // Update strings with current text box text
                                     Album = AlbumTextBox.Text;
                                     string outputPath = $"{selectedPath}\\Track{trackNumber}.mp3";
                                     MP3OUT = outputPath;
                                     Console.WriteLine($"outputPath folder: {outputPath}");
                                     Title = $"Track{trackNumber}";
                                     TitleTextBox.Text = Title;
-                                    //Rip complete event initiated
+
+                                    // Rip complete event initiated
                                     cdRipper.RipCompleted += CdRipper_RipCompleted;
 
-                                    //start ripping with save path, tracknumber for mp3 name and location of track, cd drive used 
-                                    cdRipper.RipTrack(outputPath, trackNumber, driveIndex);
-                                    cdRipper.UpdateLabelEvent += UpdateRipLabel;//event to display rip complete and trigger metadata insertion to the newly created mp3 file
+                                    // Start ripping with save path, track number for mp3 name and location of track, cd drive used 
+                                    cdRipper.RipTrack(outputPath, trackNumber - 1, driveIndex); // subtract 1 from track number list because of the zero based index of the CD (The offspring cd is 12 tracks which is 0-11 not 1-12) to fix the "non negitive value required" error
+                                    cdRipper.UpdateLabelEvent += UpdateRipLabel; // display rip complete and trigger metadata insertion to the newly created mp3 file
 
                                     Console.WriteLine($"Added Title: {Title}");
                                 }
@@ -685,6 +687,7 @@ namespace FinalProjectWPF_2
                 MessageBox.Show("Selected track info is in an unexpected format.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         // Triggered when CD ripping is completed
         private void CdRipper_RipCompleted(object sender, EventArgs e)
@@ -885,5 +888,12 @@ namespace FinalProjectWPF_2
         {
 
         }
+
+        private async void TestButton_Click(object sender, RoutedEventArgs e)
+        {
+            ApplicationTests tests = new ApplicationTests(this);
+            await tests.RunAllTests();
+        }
+
     }
 }

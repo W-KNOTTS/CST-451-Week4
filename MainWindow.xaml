@@ -47,6 +47,7 @@
         <Button x:Name="OkButton" Content="Update MetaData" HorizontalAlignment="Left" Click="OkButton_Click" Margin="708,330,0,0" Width="86" Height="20" VerticalAlignment="Top" FontSize="10"/>
         <Slider x:Name="VolumeSlider" Margin="635,0,0,48" Minimum="0" Maximum="1" Value="0.5" ValueChanged="VolumeSlider_ValueChanged" HorizontalAlignment="Left" Width="164" Height="18" VerticalAlignment="Bottom"/>
         <CheckBox x:Name="MuteCheckBox" Content="Mute" HorizontalAlignment="Left" Margin="693,0,0,86" VerticalAlignment="Bottom" Checked="MuteCheckBox_Checked" Unchecked="MuteCheckBox_Unchecked"/>
+        <Button x:Name="TestButton" Content="Run Tests" HorizontalAlignment="Left" Margin="708,356,0,0" Width="86" Height="20" VerticalAlignment="Top" Click="TestButton_Click" FontSize="10"/>
 
     </Grid>
 </Window>

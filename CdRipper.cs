@@ -187,5 +187,7 @@ namespace FinalProjectWPF_2
         {
             audioCDRipper.CloseCD(driveIndex);
         }
+
+
     }
 }

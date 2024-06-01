@@ -35,7 +35,7 @@
 
         <ListBox x:Name="mediaListBox" Margin="5,10,0,123" SelectionChanged="MediaListBox_SelectionChanged" HorizontalAlignment="Left" Width="216"/>
         <Label Content="Select a CD drive:" Margin="1,0,0,69" HorizontalAlignment="Left" Width="129" Height="23" VerticalAlignment="Bottom"/>
-        <ComboBox x:Name="DriveComboBox" SelectionChanged="DriveComboBox_SelectionChanged" Margin="5,0,0,49" HorizontalAlignment="Left" Width="130" Height="20" VerticalAlignment="Bottom"/>
+        <ComboBox x:Name="DriveComboBox" SelectionChanged="DriveComboBox_SelectionChanged" DropDownClosed="DriveComboBox_DropDownClosed" Margin="5,0,0,49" HorizontalAlignment="Left" Width="130" Height="20" VerticalAlignment="Bottom"/>
         <Label x:Name="RipLabel" Content="" Margin="228,0,159,94" FontWeight="Bold" Height="27" VerticalAlignment="Bottom"/>
         <Button x:Name="RipCDButton" Content="Rip Song" Click="RipCDButton_Click" HorizontalAlignment="Left" Margin="141,0,0,49" Width="64" Height="20" VerticalAlignment="Bottom" RenderTransformOrigin="0.689,0.667"/>
         <MediaElement x:Name="mediaElement"

@@ -318,6 +318,7 @@ namespace FinalProjectWPF_2
         // Opens a dialog to select a media directory and saves it as a string
         private void SelectDirectoryButton_Click(object sender, RoutedEventArgs e)
         {
+            CoverArt.Source = null;//added to remove image if CD is not the source, image will load when cd drive is selected
             var folderBrowserDialog = new Microsoft.Win32.OpenFileDialog();
             folderBrowserDialog.ValidateNames = false;
             folderBrowserDialog.CheckFileExists = false;
@@ -688,6 +689,17 @@ namespace FinalProjectWPF_2
             }
         }
 
+        // triggered when a cd drive is selected or reselected
+        private void DriveComboBox_DropDownClosed(object sender, EventArgs e)
+        {
+            // Always reload the tracks from the selected drive when dropdown is closed
+            if (DriveComboBox.SelectedItem != null)
+            {
+                string selectedDrive = DriveComboBox.SelectedItem.ToString();
+                int driveIndex = ConvertDriveToIndex(selectedDrive);
+                LoadTracksFromCD(driveIndex);
+            }
+        }
 
         // Triggered when CD ripping is completed
         private void CdRipper_RipCompleted(object sender, EventArgs e)
@@ -802,12 +814,12 @@ namespace FinalProjectWPF_2
         // Event triggered when a CD drive is selected
         private void DriveComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            LoadCDTracks();
-
             if (DriveComboBox.SelectedItem != null)
             {
+                // Always reload the tracks from the selected drive
                 string selectedDrive = DriveComboBox.SelectedItem.ToString();
-                LoadTracksFromCD(ConvertDriveToIndex(selectedDrive));
+                int driveIndex = ConvertDriveToIndex(selectedDrive);
+                LoadTracksFromCD(driveIndex);
             }
         }
 
@@ -826,10 +838,13 @@ namespace FinalProjectWPF_2
 
                 if (mediaListBox.Items.Count > 0)
                     mediaListBox.SelectedIndex = 0;
+
+                LoadCDTracks();
+
             }
             else
             {
-                System.Windows.Forms.MessageBox.Show("The CD is not ready. Please insert a CD into the drive.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Console.WriteLine("The CD is not ready. Please insert a CD into the drive.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void MuteCheckBox_Checked(object sender, RoutedEventArgs e)

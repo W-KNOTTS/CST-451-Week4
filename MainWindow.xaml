@@ -9,46 +9,57 @@
 
     <Grid Margin="0,1,0,-1">
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition Height="0*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <Image x:Name="CoverArt" Margin="359,12,124,120"/>
+        <Image x:Name="CoverArt" Margin="75,10,75,22" Grid.Row="0" Grid.Column="1"/>
 
-        <Button x:Name="SelectDirectoryButton" Content="Select Directory" HorizontalAlignment="Left" Margin="68,0,0,98" VerticalAlignment="Bottom" Width="90" Click="SelectDirectoryButton_Click" Height="20" />
-        <Button x:Name="PlayButton" Content="Play" HorizontalAlignment="Left" Margin="300,0,0,49" Width="76" Click="PlayButton_Click" Height="20" VerticalAlignment="Bottom"/>
-        <Button x:Name="PauseButton" Content="Pause" Margin="382,0,0,49" Click="PauseButton_Click" HorizontalAlignment="Left" Width="74" Height="20" VerticalAlignment="Bottom"/>
-        <Button x:Name="StopButton" Content="Stop" Margin="460,0,0,49" VerticalAlignment="Bottom" Click="StopButton_Click" Height="20" HorizontalAlignment="Left" Width="76"/>
-        <Button x:Name="NextButton" Content="Next" Margin="540,0,0,49" Click="NextButton_Click" HorizontalAlignment="Left" Width="76" Height="20" VerticalAlignment="Bottom"/>
-        <Button x:Name="PreviousButton" Content="Previous" Margin="220,0,0,49" Click="PreviousButton_Click" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="76"/>
+        <Button x:Name="SelectDirectoryButton" Content="Select Directory" HorizontalAlignment="Left" Margin="10,0,0,71" VerticalAlignment="Bottom" Width="90" Click="SelectDirectoryButton_Click" Height="20" Grid.Row="1" Grid.Column="0" RenderTransformOrigin="0.454,1.483"/>
 
-        <Slider x:Name="seekSlider" Minimum="0" Margin="10,0,10,20" TickFrequency="1" SmallChange="1" LargeChange="10" Thumb.DragStarted="seekSlider_DragStarted" Thumb.DragCompleted="seekSlider_DragCompleted" ValueChanged="seekSlider_ValueChanged" Height="21" VerticalAlignment="Bottom"/>
+        <!-- Grouping TextBox elements in a Border with ScrollViewer -->
+        <Border Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" BorderBrush="Transparent" BorderThickness="0" Grid.Row="0" Grid.Column="1" Width="568">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <StackPanel Orientation="Vertical">
+                    <TextBox x:Name="ArtistTextBox" Height="30" VerticalAlignment="Top" Text="{Binding Artists, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Opacity="0.6" FontWeight="Bold"/>
+                    <TextBox x:Name="AlbumTextBox" Height="30" VerticalAlignment="Top" Text="Album" TextChanged="AlbumTextBox_TextChanged" Opacity="0.6" FontWeight="Bold"/>
+                    <TextBox x:Name="TitleTextBox" Height="30" VerticalAlignment="Top" Text="{Binding Track, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Opacity="0.6" FontWeight="Bold"/>
+                    <TextBox x:Name="ReleaseDateTextBox" Height="30" VerticalAlignment="Top" Text="Release Date" TextChanged="ReleaseDateTextBox_TextChanged" Opacity="0.6" FontWeight="Bold"/>
+                    <TextBox x:Name="GenreTextBox" Height="30" VerticalAlignment="Top" Text="Genres" TextChanged="GenreTextBox_TextChanged" Opacity="0.6" FontWeight="Bold"/>
+                    <TextBox x:Name="TagsTextBox" Height="30" VerticalAlignment="Top" Text="Tags" TextChanged="TagsTextBox_TextChanged" Opacity="0.6" FontWeight="Bold"/>
+                    <TextBox x:Name="DurationTextBox" Height="30" VerticalAlignment="Top" Text="Duration" TextChanged="DurationTextBox_TextChanged" Opacity="0.6" FontWeight="Bold"/>
+                    <TextBox x:Name="SizeTextBox" Height="30" VerticalAlignment="Top" Text="Size" TextChanged="SizeTextBox_TextChanged" Opacity="0.6" FontWeight="Bold"/>
+                    <Button x:Name="OkButton" Content="Update MetaData" VerticalAlignment="Top" Click="OkButton_Click" Width="86" Height="20" FontSize="10"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
 
-        <TextBox x:Name="ArtistTextBox" Margin="227,12,0,0" Height="30" VerticalAlignment="Top" Text="{Binding Artists, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Opacity="0.6" FontWeight="Bold" HorizontalAlignment="Left" Width="567"/>
-        <TextBox x:Name="AlbumTextBox" Margin="227,52,0,0" Height="30" VerticalAlignment="Top" Text="Album" TextChanged="AlbumTextBox_TextChanged" Opacity="0.6" FontWeight="Bold" HorizontalAlignment="Left" Width="567"/>
-        <TextBox x:Name="TitleTextBox" Margin="227,92,0,0" Height="30" VerticalAlignment="Top" Text="{Binding Track, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Opacity="0.6" FontWeight="Bold" HorizontalAlignment="Left" Width="567"/>
-        <TextBox x:Name="ReleaseDateTextBox" Margin="227,132,0,0" Height="30" VerticalAlignment="Top" Text="Release Date" TextChanged="ReleaseDateTextBox_TextChanged" Opacity="0.6" FontWeight="Bold" HorizontalAlignment="Left" Width="567"/>
-        <TextBox x:Name="GenreTextBox" Margin="227,172,0,0" Height="30" VerticalAlignment="Top" Text="Genres" TextChanged="GenreTextBox_TextChanged" Opacity="0.6" FontWeight="Bold" HorizontalAlignment="Left" Width="567"/>
-        <TextBox x:Name="TagsTextBox" Margin="228,209,0,0" Height="30" VerticalAlignment="Top" Text="Tags" TextChanged="TagsTextBox_TextChanged" Opacity="0.6" FontWeight="Bold" HorizontalAlignment="Left" Width="567"/>
-        <TextBox x:Name="DurationTextBox" Margin="227,252,0,0" Height="30" VerticalAlignment="Top" Text="Duration" TextChanged="DurationTextBox_TextChanged" Opacity="0.6" FontWeight="Bold" HorizontalAlignment="Left" Width="567"/>
-        <TextBox x:Name="SizeTextBox" Margin="227,292,0,0" Height="30" VerticalAlignment="Top" Text="Size" TextChanged="SizeTextBox_TextChanged" Opacity="0.6" FontWeight="Bold" HorizontalAlignment="Left" Width="567"/>
+        <ListBox x:Name="mediaListBox" Margin="5,10,0,101" SelectionChanged="MediaListBox_SelectionChanged" HorizontalAlignment="Left" Width="216" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2"/>
+        <Label Content="Select a CD drive:" Margin="8,0,0,43" HorizontalAlignment="Left" Width="129" Grid.Row="1" Grid.Column="0" Height="26" VerticalAlignment="Bottom"/>
+        <Label x:Name="RipLabel" Content="" Margin="0,59,0,0" FontWeight="Bold" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Width="198" Height="27" VerticalAlignment="Top"/>
 
-        <ListBox x:Name="mediaListBox" Margin="5,10,0,123" SelectionChanged="MediaListBox_SelectionChanged" HorizontalAlignment="Left" Width="216"/>
-        <Label Content="Select a CD drive:" Margin="1,0,0,69" HorizontalAlignment="Left" Width="129" Height="23" VerticalAlignment="Bottom"/>
-        <ComboBox x:Name="DriveComboBox" SelectionChanged="DriveComboBox_SelectionChanged" DropDownClosed="DriveComboBox_DropDownClosed" Margin="5,0,0,49" HorizontalAlignment="Left" Width="130" Height="20" VerticalAlignment="Bottom"/>
-        <Label x:Name="RipLabel" Content="" Margin="228,0,159,94" FontWeight="Bold" Height="27" VerticalAlignment="Bottom"/>
-        <Button x:Name="RipCDButton" Content="Rip Song" Click="RipCDButton_Click" HorizontalAlignment="Left" Margin="141,0,0,49" Width="64" Height="20" VerticalAlignment="Bottom" RenderTransformOrigin="0.689,0.667"/>
+        <Button x:Name="RipCDButton" Content="Rip Song" Click="RipCDButton_Click" HorizontalAlignment="Left" Margin="113,0,0,23" Width="64" Height="20" VerticalAlignment="Bottom" RenderTransformOrigin="0.689,0.667" Grid.Row="1"/>
+        <ComboBox x:Name="DriveComboBox" SelectionChanged="DriveComboBox_SelectionChanged" DropDownClosed="DriveComboBox_DropDownClosed" Margin="10,0,0,23" HorizontalAlignment="Left" Width="95" Height="20" VerticalAlignment="Bottom" Grid.Row="1" Grid.Column="0"/>
+        <Button x:Name="PreviousButton" Content="Previous" Margin="5,0,0,57" Click="PreviousButton_Click" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="76" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="PlayButton" Content="Play" HorizontalAlignment="Left" Margin="85,0,0,57" Width="76" Click="PlayButton_Click" Height="20" VerticalAlignment="Bottom" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="PauseButton" Content="Pause" Margin="167,0,0,57" Click="PauseButton_Click" HorizontalAlignment="Left" Width="74" Height="20" VerticalAlignment="Bottom" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="StopButton" Content="Stop" Margin="245,0,0,57" VerticalAlignment="Bottom" Click="StopButton_Click" Height="20" HorizontalAlignment="Left" Width="76" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="NextButton" Content="Next" Margin="325,0,0,57" Click="NextButton_Click" HorizontalAlignment="Left" Width="76" Height="20" VerticalAlignment="Bottom" Grid.Row="1" Grid.Column="1"/>
+        <CheckBox x:Name="MuteCheckBox" Content="Mute" HorizontalAlignment="Left" Margin="121,0,0,69" VerticalAlignment="Bottom" Checked="MuteCheckBox_Checked" Unchecked="MuteCheckBox_Unchecked" Height="20" Width="56" RenderTransformOrigin="0.657,0.043" Grid.Row="1"/>
+        <Label x:Name="label" Content="                    Volume                 &#xA;-                                                 +" Margin="403,0,0,52" FontWeight="Bold" HorizontalAlignment="Left" Width="184" Height="42" VerticalAlignment="Bottom" Grid.Column="1" RenderTransformOrigin="0.141,0.535" Grid.RowSpan="2"/>
+        <Slider x:Name="seekSlider" Minimum="0" Margin="0,42,0,0" TickFrequency="1" SmallChange="1" LargeChange="10" Thumb.DragStarted="seekSlider_DragStarted" Thumb.DragCompleted="seekSlider_DragCompleted" ValueChanged="seekSlider_ValueChanged" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Width="586" Height="18" VerticalAlignment="Top"/>
+        <Slider x:Name="VolumeSlider" Margin="414,0,0,54" Minimum="0" Maximum="1" Value="0.5" ValueChanged="VolumeSlider_ValueChanged" HorizontalAlignment="Left" Width="164" Height="18" VerticalAlignment="Bottom" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="TestButton" Content="Run Tests" HorizontalAlignment="Left" Margin="251,275,0,0" Width="86" Height="20" VerticalAlignment="Top" Click="TestButton_Click" FontSize="10" Grid.Column="1" Visibility="Hidden"/>
         <MediaElement x:Name="mediaElement"
               LoadedBehavior="Manual"
               UnloadedBehavior="Stop"
               MediaOpened="MediaElement_MediaOpened"
-              MediaEnded="MediaElement_MediaEnded" Margin="228,12,6,122" />
-        <Label x:Name="label" Content="                    Volume                 &#xD;&#xA;-                                                 +" Margin="626,0,0,47" FontWeight="Bold" HorizontalAlignment="Left" Width="184" Height="42" VerticalAlignment="Bottom"/>
-        <Button x:Name="OkButton" Content="Update MetaData" HorizontalAlignment="Left" Click="OkButton_Click" Margin="708,330,0,0" Width="86" Height="20" VerticalAlignment="Top" FontSize="10"/>
-        <Slider x:Name="VolumeSlider" Margin="635,0,0,48" Minimum="0" Maximum="1" Value="0.5" ValueChanged="VolumeSlider_ValueChanged" HorizontalAlignment="Left" Width="164" Height="18" VerticalAlignment="Bottom"/>
-        <CheckBox x:Name="MuteCheckBox" Content="Mute" HorizontalAlignment="Left" Margin="693,0,0,86" VerticalAlignment="Bottom" Checked="MuteCheckBox_Checked" Unchecked="MuteCheckBox_Unchecked"/>
-        <!--<Button x:Name="TestButton" Content="Run Tests" HorizontalAlignment="Left" Margin="708,356,0,0" Width="86" Height="20" VerticalAlignment="Top" Click="TestButton_Click" FontSize="10"/>
-        <CheckBox x:Name="RipAllCheckBox" Content="Rip All" HorizontalAlignment="Left" Margin="163,362,0,0" Width="86" Height="20" VerticalAlignment="Top" /> BIG FAIL - Gonna take a ton of work and I dont know if i have time....-->
+              MediaEnded="MediaElement_MediaEnded" Margin="10,10,10,0" Grid.Row="0" Grid.Column="1" />
+        <!--<CheckBox x:Name="RipAllCheckBox" Content="Rip All" HorizontalAlignment="Left" Margin="163,362,0,0" Width="86" Height="20" VerticalAlignment="Top" />-->
 
     </Grid>
 </Window>

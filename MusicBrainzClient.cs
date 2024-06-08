@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json; // required for json serialization and deserialization of musicbrainz
+using Newtonsoft.Json;
 
 namespace FinalProjectWPF_2
 {
-    // A client for interacting with the MusicBrainz API
+    // Client for interacting with the MusicBrainz API
     public class MusicBrainzClient
     {
-        // HttpClient instance for sending requests to the MusicBrainz API
         private readonly HttpClient _httpClient;
 
-        // Constructor to initialize the HttpClient with MusicBrainz base URL and user agent
+        // Constructor initializes the HttpClient
         public MusicBrainzClient()
         {
             _httpClient = new HttpClient
@@ -23,7 +22,7 @@ namespace FinalProjectWPF_2
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "MusicBrainzClient/1.0 ( williamwknotts@gmail.com )");
         }
 
-        // Class to hold the recording data received from MusicBrainz
+        // Class to hold recording data
         public class RecordingData
         {
             public string ArtistName { get; set; }
@@ -36,15 +35,20 @@ namespace FinalProjectWPF_2
             public string ReleaseGroupId { get; internal set; }
         }
 
-        // retrieves recording data by disc ID
+        // Method to look up recording data by disc ID
         public async Task<RecordingData> LookupByDiscIdAsync(string discId)
         {
             try
             {
-                string url = $"discid/{discId}?fmt=json&inc=artist-credits+labels+recordings+release-groups";//string to get release group details
+                // Construct the URL for the API request
+                string url = $"discid/{discId}?fmt=json&inc=artist-credits+labels+recordings+release-groups+genres+tags";
+                // Send the GET request
                 HttpResponseMessage response = await _httpClient.GetAsync(url);
                 response.EnsureSuccessStatusCode();
+                // Read the response as a string
                 string json = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"API Response: {json}"); // Debugging: Print API response
+                // Parse the JSON response
                 return ParseDiscResponse(json);
             }
             catch (Exception ex)
@@ -54,7 +58,7 @@ namespace FinalProjectWPF_2
             }
         }
 
-        // Parses the JSON response to a RecordingData
+        // Method to parse the JSON response
         private RecordingData ParseDiscResponse(string json)
         {
             var result = JsonConvert.DeserializeObject<DiscLookupResult>(json);
@@ -64,6 +68,9 @@ namespace FinalProjectWPF_2
             }
 
             var release = result.Releases.FirstOrDefault();
+            Console.WriteLine($"Genres: {string.Join(", ", release.Genres?.Select(g => g.Name) ?? Enumerable.Empty<string>())}"); //Debugging: Print Genres - not working properly
+            Console.WriteLine($"Tags: {string.Join(", ", release.Tags?.Select(t => t.Name) ?? Enumerable.Empty<string>())}"); // Debugging: Print Tags not working properly
+
             return new RecordingData
             {
                 ArtistName = release.ArtistCredit?.FirstOrDefault()?.Artist?.Name ?? "Unknown Artist",
@@ -75,7 +82,7 @@ namespace FinalProjectWPF_2
             };
         }
 
-        // fetches cover art for a release group
+        // Method to fetch cover art for a release group
         public async Task<string> FetchCoverArtAsync(string releaseGroupId)
         {
             string url = $"https://coverartarchive.org/release-group/{releaseGroupId}";
@@ -94,25 +101,28 @@ namespace FinalProjectWPF_2
             }
         }
 
-        //  classes for JSON parsing. Each get/set what their name implies for a media file.
+        // Class for the cover art results
         private class CoverArtResult
         {
             [JsonProperty("images")]
             public List<CoverImage> Images { get; set; }
         }
 
+        // Class for the cover image
         private class CoverImage
         {
             [JsonProperty("image")]
             public string Image { get; set; }
         }
 
+        // Class for the disc lookup results
         private class DiscLookupResult
         {
             [JsonProperty("releases")]
             public List<Release> Releases { get; set; }
         }
 
+        // Class for the release
         private class Release
         {
             [JsonProperty("title")]
@@ -134,30 +144,35 @@ namespace FinalProjectWPF_2
             public ReleaseGroup ReleaseGroup { get; set; }
         }
 
+        // Class for the release group
         private class ReleaseGroup
         {
             [JsonProperty("id")]
             public string Id { get; set; }
         }
 
+        // Class for the artist credit
         private class ArtistCredit
         {
             [JsonProperty("artist")]
             public Artist Artist { get; set; }
         }
 
+        // Class for the an artist
         private class Artist
         {
             [JsonProperty("name")]
             public string Name { get; set; }
         }
 
+        //Class for the genre
         private class Genre
         {
             [JsonProperty("name")]
             public string Name { get; set; }
         }
 
+        // Class for the tag
         private class Tag
         {
             [JsonProperty("name")]

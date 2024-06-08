@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using TagLib;
 
@@ -115,10 +116,13 @@ namespace FinalProjectWPF_2
 
         public async Task TestMediaPlayback()
         {
-            // Arrange
+            // Arrange: Set the media source to the test file
             mainWindow.mediaElement.Source = new Uri(filePath, UriKind.Relative);
 
-            // Act
+            // Load cover art
+            LoadCoverArt(System.IO.Path.GetDirectoryName(filePath));
+
+            // Start media playback
             mainWindow.mediaElement.Play();
             mainWindow.timer.Start();
 
@@ -136,6 +140,36 @@ namespace FinalProjectWPF_2
             mainWindow.timer.Stop();
 
             testTimer.Stop();
+        }
+
+
+
+        // Method to load cover art from a specified path
+        private void LoadCoverArt(string filePath)
+        {
+            // Path to the album art file
+            String artPath = "Resources/AlbumArt.jpg";
+
+            // Check if the album art file exists
+            if (System.IO.File.Exists(artPath))
+            {
+                // Create a new BitmapImage
+                BitmapImage bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(artPath, UriKind.Relative); // Set the UriSource to the album art path
+                bitmap.CacheOption = BitmapCacheOption.OnLoad; // Ensure the image is loaded immediately
+                bitmap.EndInit();
+
+                // Set the CoverArt source to the loaded image
+                mainWindow.CoverArt.Source = bitmap;
+                Console.WriteLine($"Loaded album art from {artPath}");
+            }
+            else
+            {
+                // If the album art file does not exist, clear the CoverArt source
+                mainWindow.CoverArt.Source = null;
+                Console.WriteLine("No album art found in the directory.");
+            }
         }
 
         private void TestPlaybackTimer_Tick(object sender, EventArgs e)

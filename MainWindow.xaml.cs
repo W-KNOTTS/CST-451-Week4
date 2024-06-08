@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Hqub.MusicBrainz.Entities;
 using DiscId;
 using System.Windows.Media.Imaging;
+using System.Net.Http;
 
 namespace FinalProjectWPF_2
 {
@@ -163,6 +164,7 @@ namespace FinalProjectWPF_2
             mediaElement.Stop();  //stops the media playback
             seekSlider.Value = 0;  //resets the seek slider to the beginning
             timer.Stop();  //stops the timer as there if no there is no playback
+            isPlaying = false;
 
             int currentIndex = mediaListBox.SelectedIndex;  //gets the current index of the selected media item
             if (currentIndex < mediaListBox.Items.Count - 1)  //check for more items in the list after the current one
@@ -185,10 +187,12 @@ namespace FinalProjectWPF_2
             if (mediaElement.Source != null)
             {
                 mediaElement.Play();
+                isPlaying = true;
                 timer.Start();
 
                 // Assuming that the file path of the currently playing item is required to check if it's a video or not
                 string filePath = mediaElement.Source.LocalPath;  // Get the local path of the file
+                
                 if (IsVideoFile(filePath))  // Check if it's a video file
                 {
                     HideMetadataTextboxesForVideo();  // Hide metadata textboxes if it's a video
@@ -199,7 +203,33 @@ namespace FinalProjectWPF_2
                     DisplayMetadata(filePath);  // Also update the metadata display for non-video files
                 }
             }
+            else if (mediaListBox.SelectedItem != null && mediaDirectory != null)
+            {
+                string selectedFileName = mediaListBox.SelectedItem.ToString();
+                string filePath = Path.Combine(mediaDirectory, selectedFileName);
+                mediaElement.Source = new Uri(filePath);
+                mediaElement.Play();
+                isPlaying = true;
+                timer.Start();
+
+                Console.WriteLine($"Playing: {filePath}"); // Debugging
+                bool isVideo = IsVideoFile(filePath);
+                Console.WriteLine($"Is video: {isVideo}"); // Debugging
+
+                if (isVideo)
+                {
+                    HideMetadataTextboxesForVideo(); // Hide metadata if it is a video file
+                    Console.WriteLine("Hiding metadata for video."); // Debugging
+                }
+                else
+                {
+                    ShowMetadataTextboxes();
+                    DisplayMetadata(filePath); // Update metadata display only for non-video files
+                    Console.WriteLine("Showing metadata for audio."); // Debugging
+                }
+            }
         }
+
 
 
         //pause button click
@@ -257,6 +287,7 @@ namespace FinalProjectWPF_2
                 string filePath = Path.Combine(mediaDirectory, selectedFileName);
                 mediaElement.Source = new Uri(filePath);
                 mediaElement.Play();
+                isPlaying = true;
 
                 Console.WriteLine($"Playing: {filePath}"); // Debugging
                 bool isVideo = IsVideoFile(filePath);
@@ -264,7 +295,7 @@ namespace FinalProjectWPF_2
 
                 if (isVideo)
                 {
-                    HideMetadataTextboxesForVideo();//hide metadata if it is a video file
+                    HideMetadataTextboxesForVideo(); // Hide metadata if it is a video file
                     Console.WriteLine("Hiding metadata for video."); // Debugging
                 }
                 else
@@ -277,11 +308,12 @@ namespace FinalProjectWPF_2
         }
 
 
-
         // Check if a file is a video file
         private bool IsVideoFile(string filePath)
         {
             string[] videoExtensions = { ".mp4", ".mkv", ".avi" }; // seperate video files to hide metadata boxes 
+            mediaElement.Visibility = Visibility.Visible;
+
             return videoExtensions.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase);
         }
 
@@ -357,17 +389,46 @@ namespace FinalProjectWPF_2
             return validExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
         }
 
+        public bool isPlaying = false;
+
         //event for when a media item is selected
         private void MediaListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+
             if (mediaListBox.SelectedItem != null && mediaDirectory != null)
             {
                 string selectedFileName = mediaListBox.SelectedItem.ToString();
                 string filePath = Path.Combine(mediaDirectory, selectedFileName);
-                mediaElement.Source = new Uri(filePath);
-                DisplayMetadata(filePath);
+
+                // Ensure the file path is valid before creating a Uri
+                if (Uri.TryCreate(filePath, UriKind.Absolute, out Uri fileUri) && File.Exists(filePath))
+                {
+                    mediaElement.Source = fileUri;
+
+                    bool isVideo = IsVideoFile(filePath);
+                    if (isVideo)
+                    {
+                        HideMetadataTextboxesForVideo(); // Hide metadata if it is a video file
+                        Console.WriteLine("Hiding metadata for video."); // Debugging
+                    }
+                    
+                    else
+                    {
+                        ShowMetadataTextboxes();
+                        DisplayMetadata(filePath); // Update metadata display only for non-video files
+                        Console.WriteLine("Showing metadata for audio."); // Debugging
+                    }
+                    LoadAlbumArt(mediaDirectory);
+
+                }
+
+                else
+                {
+                    Console.WriteLine($"Invalid file path: {filePath}");
+                }
             }
         }
+
 
         //populate the CD drive list
         private void PopulateCDrives()
@@ -435,7 +496,7 @@ namespace FinalProjectWPF_2
             // Additional preliminary check for MPEG headers
             if (!IsLikelyValidMPEG(filePath))
             {
-                MessageBox.Show("The file does not appear to be a valid MPEG audio file.", "Invalid File Type", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Console.WriteLine("The file does not appear to be a valid MPEG audio file.", "Invalid File Type");
                 return;
             }
 
@@ -477,32 +538,43 @@ namespace FinalProjectWPF_2
         }
 
         // insert the current metadata from the text boxes into the currently selected audio file
-        private async Task insertMetaData(string filePath)
+        private Task InsertMetaData(string filePath)
         {
-            if (mediaListBox.SelectedItem == null)
-            {
-                MessageBox.Show("Please select a file from the list.");
-                return;
-            }
-
-            // Check if the file exists
             if (!File.Exists(filePath))
             {
-                MessageBox.Show("Selected file does not exist.");
-                return;
+                Console.WriteLine("File does not exist: " + filePath);
+                return Task.CompletedTask;
             }
 
             try
             {
-                //Create seperate functions to maybe add individual buttons for single updates to tracks.
-                using (var file = TagLib.File.Create(filePath))
+                using (var file = TagLib.File.Create(filePath)) // Using TagLib to open the file and read metadata
                 {
-                    Console.WriteLine(filePath);
+                    // Update Artist
+                    file.Tag.Performers = new[] { ArtistTextBox.Text };
 
-                    await UpdateArtist(filePath);
-                    await UpdateAlbum(filePath);
-                    await UpdateTitle(filePath);
-                    await UpdateDate(filePath);
+                    // Update Album
+                    file.Tag.Album = AlbumTextBox.Text;
+
+                    // Update Title
+                    file.Tag.Title = TitleTextBox.Text;
+
+                    // Update Release Date
+                    if (DateTime.TryParse(ReleaseDateTextBox.Text, out DateTime releaseDate))
+                    {
+                        file.Tag.Year = (uint)releaseDate.Year;
+                    }
+
+                    // Update Genres
+                    var genres = GenreTextBox.Text.Split(new[] { ", " }, StringSplitOptions.None);
+                    file.Tag.Genres = genres;
+
+                    // Update Tags
+                    var tags = TagsTextBox.Text.Split(new[] { ", " }, StringSplitOptions.None);
+                    //file.Tag.Keywords = tags;
+
+                    // Save all updates
+                    file.Save();
                 }
                 MessageBox.Show("Metadata updated successfully.");
             }
@@ -510,7 +582,10 @@ namespace FinalProjectWPF_2
             {
                 MessageBox.Show($"Failed to update file metadata: {ex.Message}");
             }
+
+            return Task.CompletedTask;
         }
+
 
         // Updates the artist metadata
         public async Task UpdateArtist(string filePath)
@@ -613,8 +688,50 @@ namespace FinalProjectWPF_2
             }
         }
 
+        
+
+        public async Task UpdateGenres(string filePath)
+        {
+            try
+            {
+                using (var file = TagLib.File.Create(filePath))
+                {
+                    var genres = GenreTextBox.Text.Split(new[] { ", " }, StringSplitOptions.None);
+                    file.Tag.Genres = genres;
+                    await Task.Delay(100);
+                    file.Save();
+                    Console.WriteLine("Genres updated successfully!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating genres: {ex.Message}");
+            }
+        }
+
+        private void LoadAlbumArt(string directoryPath)
+        {
+            string albumArtPath = Directory.EnumerateFiles(directoryPath, "*.jpg").FirstOrDefault();// find the first jpg in the diectory and loads it as the cover art
+            if (File.Exists(albumArtPath))
+            {
+                BitmapImage bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(albumArtPath, UriKind.Absolute);
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                CoverArt.Source = bitmap;
+                Console.WriteLine($"Loaded album art from {albumArtPath}");
+            }
+            else
+            {
+                CoverArt.Source = null;
+                Console.WriteLine("No album art found in the directory.");
+            }
+        }
+
+
         // Button to rip selected media list box item from the loaded cd
-        private void RipCDButton_Click(object sender, RoutedEventArgs e)
+        private async void RipCDButton_Click(object sender, RoutedEventArgs e)
         {
             if (mediaListBox.SelectedItem == null)
             {
@@ -638,34 +755,36 @@ namespace FinalProjectWPF_2
                         {
                             if (trackNumber >= 1 && trackNumber <= totalTracks)
                             {
-                                // Open dialog to select the save directory for ripping tracks
-                                var folderBrowserDialog = new FolderBrowserDialog();
-                                folderBrowserDialog.Description = "Select a folder for music files";
-                                folderBrowserDialog.ShowNewFolderButton = true;
-                                folderBrowserDialog.RootFolder = Environment.SpecialFolder.MyMusic;
+                                var folderBrowserDialog = new FolderBrowserDialog
+                                {
+                                    Description = "Select a folder for music files",
+                                    ShowNewFolderButton = true,
+                                    RootFolder = Environment.SpecialFolder.MyMusic
+                                };
                                 if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                                 {
-                                    string selectedPath = folderBrowserDialog.SelectedPath; // path selected saved to string
-                                    Console.WriteLine($"Selected folder: {selectedPath}");
-
-                                    // Update strings with current text box text
-                                    Album = AlbumTextBox.Text;
-                                    string outputPath = $"{selectedPath}\\Track{trackNumber}.mp3";
+                                    string selectedPath = folderBrowserDialog.SelectedPath;
+                                    string outputPath = Path.Combine(selectedPath, $"Track{trackNumber}.mp3");
                                     MP3OUT = outputPath;
-                                    Console.WriteLine($"outputPath folder: {outputPath}");
-                                    Title = $"Track{trackNumber}";
-                                    TitleTextBox.Text = Title;
 
-                                    // Rip complete event initiated
+                                    // Set track title before ripping
+                                    TitleTextBox.Text = $"Track{trackNumber}";
+
                                     cdRipper.RipCompleted += CdRipper_RipCompleted;
+                                    cdRipper.RipTrack(outputPath, trackNumber - 1, driveIndex);
+                                    cdRipper.UpdateLabelEvent += UpdateRipLabel;
 
-                                    // Start ripping with save path, track number for mp3 name and location of track, cd drive used 
-                                    cdRipper.RipTrack(outputPath, trackNumber - 1, driveIndex); // subtract 1 from track number list because of the zero based index of the CD (The offspring cd is 12 tracks which is 0-11 not 1-12) to fix the "non negitive value required" error
-                                    cdRipper.UpdateLabelEvent += UpdateRipLabel; // display rip complete and trigger metadata insertion to the newly created mp3 file
-
-                                    Console.WriteLine($"Added Title: {Title}");
+                                    var recordingData = await musicBrainzclient.LookupByDiscIdAsync(dId);
+                                    if (recordingData != null)
+                                    {
+                                        string albumArtUrl = await musicBrainzclient.FetchCoverArtAsync(recordingData.ReleaseGroupId);
+                                        if (!string.IsNullOrEmpty(albumArtUrl))
+                                        {
+                                            string albumArtPath = Path.Combine(selectedPath, "AlbumArt.jpg");
+                                            await SaveAlbumArtAsync(albumArtUrl, albumArtPath);
+                                        }
+                                    }
                                 }
-                                Console.WriteLine($"MP3OUT - Insert Meta: {MP3OUT}");
                             }
                             else
                             {
@@ -689,22 +808,63 @@ namespace FinalProjectWPF_2
             }
         }
 
+
+
+        public async Task SaveAlbumArtAsync(string imageUrl, string savePath)
+        {
+            if (File.Exists(savePath))
+            {
+                Console.WriteLine($"File already exists: {savePath}. Skipping download.");
+                return;
+            }
+
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    HttpResponseMessage response = await client.GetAsync(imageUrl);
+                    response.EnsureSuccessStatusCode();
+                    byte[] imageBytes = await response.Content.ReadAsByteArrayAsync();
+                    await Task.Run(() => File.WriteAllBytes(savePath, imageBytes));
+                    Console.WriteLine($"Album art saved to {savePath}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to save album art: {ex.Message}");
+                }
+            }
+        }
+
+
         // triggered when a cd drive is selected or reselected
         private void DriveComboBox_DropDownClosed(object sender, EventArgs e)
         {
             // Always reload the tracks from the selected drive when dropdown is closed
             if (DriveComboBox.SelectedItem != null)
             {
+
+                string selectedFileName = mediaListBox.SelectedItem.ToString();
+                string filePath = Path.Combine(mediaDirectory, selectedFileName);
+                bool isVideo = IsVideoFile(filePath);
+
+                if (IsVideoFile(filePath))  // Check if it's a video file
+                {
+                    mediaElement.Visibility = Visibility.Collapsed;
+                }
                 string selectedDrive = DriveComboBox.SelectedItem.ToString();
                 int driveIndex = ConvertDriveToIndex(selectedDrive);
                 LoadTracksFromCD(driveIndex);
+                ShowMetadataTextboxes();
+                DisplayMetadata(filePath); // Update metadata display only for non-video files
+
+                Console.WriteLine("Showing metadata for audio."); // Debugging
             }
         }
 
         // Triggered when CD ripping is completed
         private void CdRipper_RipCompleted(object sender, EventArgs e)
         {
-            _ = insertMetaData(MP3OUT);
+            _ = InsertMetaData(MP3OUT);
             Console.WriteLine("Track rip completed.");
             cdRipper.RipCompleted -= CdRipper_RipCompleted;
         }
@@ -731,7 +891,7 @@ namespace FinalProjectWPF_2
             {
                 string fullPath = Path.Combine(mediaDirectory, mediaListBox.SelectedItem.ToString());// create a string path by taking the media directory and combining it with the selected list item
                 Console.WriteLine("Currently playing media path: " + fullPath);
-                _ = insertMetaData(fullPath);
+                _ = InsertMetaData(fullPath);
             }
             else
             {
